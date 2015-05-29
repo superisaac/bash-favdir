@@ -1,0 +1,83 @@
+export FAVHISTORY="$HOME/.favdirhistory"
+
+function choose-fav-dir() {
+		local pathname=$1
+		keyword=$2
+		if [ -z $keyword ]; then
+				local arr=(`cat $FAVHISTORY`)
+		else
+				local arr=(`grep $keyword $FAVHISTORY`)
+		fi
+
+		# Get the number of arr lines
+		local nolines=${#arr[*]}
+
+		if [ $nolines -eq 0 ]; then
+				return
+		fi
+
+		if [ ${#arr[*]} -eq 1 ]; then
+				eval $pathname=${arr[0]}
+				return
+		fi
+		
+		for p in ${arr[*]}; do echo $p; done | cat -n
+				
+		echo -n "Type the index [1-$nolines]: "
+		read idx
+    if [[ $idx =~ ^[0-9]+$ ]]; then
+				if [ $idx -ge 1 -a $idx -le $nolines ]; then
+						local zidx=`expr $idx - 1`
+						eval $pathname=${arr[$zidx]}
+				fi
+    fi
+}
+
+# Favdir commands
+function fadd() {
+    if [ -z $1 ]; then
+     dir=$PWD
+    else
+     dir=$1
+    fi
+    echo Add $dir
+    echo $dir >> $FAVHISTORY
+    # reserve the last 10 history records
+    tail -n 10  $FAVHISTORY >/tmp/favhistory &&  mv /tmp/favhistory $FAVHISTORY
+}
+
+function fcd() {
+		choose-fav-dir dir $1
+    if [[ -n $dir ]]; then
+				echo $dir
+				cd $dir
+    fi
+    unset dir
+}
+
+function fpushd() {
+		choose-fav-dir dir $1
+    if [[ -n $dir ]]; then
+				echo $dir
+				pushd $dir
+    fi
+    unset dir
+}
+
+function flist() {
+		keyword=$1
+		if [ -z $keyword ]; then
+				local arr=(`cat $FAVHISTORY`)
+		else
+				local arr=(`grep $keyword $FAVHISTORY`)
+		fi
+		for p in ${arr[*]}; do echo $p; done | cat -n
+}
+
+function fdel() {
+		choose-fav-dir dir $1
+    if [[ "$dir" ]]; then
+				cat $FAVHISTORY | perl -ne 'chomp; print "$_\n" if $_ ne "'$dir'";' >/tmp/favhistory && mv /tmp/favhistory $FAVHISTORY
+    fi
+    unset dir
+}
