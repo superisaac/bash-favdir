@@ -1,8 +1,10 @@
+#!/bin/bash
+
 export FAVHISTORY="$HOME/.favdirhistory"
 
 function choose-fav-dir() {
-		local pathname=$1
-		keyword=$2
+	  local pathname=$1
+		local	keyword=$2
 		if [ -z $keyword ]; then
 				local arr=(`cat $FAVHISTORY`)
 		else
@@ -20,7 +22,7 @@ function choose-fav-dir() {
 				eval $pathname=${arr[0]}
 				return
 		fi
-		
+
 		for p in ${arr[*]}; do echo $p; done | cat -n
 				
 		echo -n "Type the index [1-$nolines]: "
